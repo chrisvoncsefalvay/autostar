@@ -17,8 +17,7 @@ It is reinforcement learning without the infrastructure. No reward model to trai
 If you just want to install the skill and try it once in Claude Code:
 
 ```bash
-git clone https://github.com/chrisvoncsefalvay/autostar.git
-cp -r autostar/autostar-skill ~/.claude/skills/autostar-skill
+npx skills add chrisvoncsefalvay/autostar
 ```
 
 Then invoke it in Claude Code:
