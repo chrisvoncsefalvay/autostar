@@ -258,6 +258,30 @@ from a widget:
 > even if they're not deal-breakers? For example: prefer a certain naming
 > convention, avoid a certain pattern, use a specific style guide."
 
+### C3. External research policy [ASK]
+
+Ask explicitly whether the run may use any external research beyond local files,
+bundled references, installed tool help, and prior run memory.
+
+```
+ask_user(
+  question: "May this run use external research if local guidance is insufficient?",
+  type: single_select,
+  options: [
+    "No — local evidence only",
+    "Yes — vendor docs / allowlisted sources only",
+    "Yes — open web allowed with approval gates"
+  ]
+)
+```
+
+Rules:
+- Default to `No — local evidence only` unless the user explicitly opts in
+- If the user picks an external option, ask whether artifact text/code may be quoted externally; default to no
+- If they want allowlisted sources only, ask them to name the allowed domains or source classes
+- Reflect the resulting policy into `mission.json` / `mission.md` before execution
+- If the user does not opt in, do not perform web search, documentation fetch, or remote best-practice lookup during the run
+
 Summarise back and ask for verbal confirmation. No widget needed here.
 
 ---

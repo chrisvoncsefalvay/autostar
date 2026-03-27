@@ -2,9 +2,9 @@
 
 > *If you can measure it, you can improve it.*
 
-**Soft RLVR for the masses.** a\* is an agent skill that turns any measurable goal into a structured optimisation loop. You define what "good" looks like. a\* runs experiments, evaluates outcomes against your rubric, learns from every attempt, and converges on the best result it can find within your budget. Think of it as Andrej Karpathy's autoresearch framework for... everything. From drug discovery to cookie recipes.
+**Soft RLVR for the masses.** a\* is an agent skill that turns any measurable goal into a structured optimisation loop. You define what "good" looks like. a\* runs experiments, evaluates outcomes against your criteria, learns from every attempt, and converges on the best result it can find within your budget. Think of it as Andrej Karpathy's autoresearch framework for... everything. From drug discovery to cookie recipes.
 
-It is reinforcement learning without the infrastructure. No reward model to train, no environment to build, no GPU cluster to provision. Just a goal, a rubric, and an agent that knows how to search.
+It is reinforcement learning without the infrastructure. No reward model to train, no environment to build, no GPU cluster to provision. Just a goal, an evaluator, and an agent that knows how to search.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b.svg)](LICENSE)
 [![Skill format](https://img.shields.io/badge/format-.skill-38bdf8.svg)](#installation)
@@ -37,11 +37,11 @@ Most interesting artifacts live in a space where quality is real but not perfect
 
 Traditional RLVR (reinforcement learning from verifiable rewards) requires rewards you can compute with certainty: math proofs, unit tests, formal verification. That covers a narrow band of what people actually want to improve.
 
-a\* works with **verifiable-ish rewards** instead. It combines hard signals (type checkers, linters, test suites) with soft ones (LLM judges with immutable rubrics, human gates) into a multi-track evaluation system. Each track has its own verifier. Some are deterministic; some are stochastic. The system handles both, running enough steps per lap to get statistical confidence rather than point estimates.
+a\* works with **verifiable-ish rewards** instead. It combines hard signals (type checkers, linters, test suites) with soft ones (LLM judges with fixed scoring criteria, human gates) into a multi-track evaluation system. Each track has its own verifier. Some are deterministic; some are stochastic. The system handles both, running enough steps per lap to get statistical confidence rather than point estimates.
 
 The result is an optimisation loop that works on anything you can decompose into measurable dimensions: code quality, documentation, prompt engineering, writing style, API design, accessibility compliance, configuration tuning.
 
-**This is not autoresearch.** Autoresearch optimises one thing (usually a prompt) against one metric. a\* optimises any artifact against a multi-dimensional rubric with independent tracks, budget-aware exploration, and cross-run learning via dispositions (learned priors that accumulate across runs).
+**This is not autoresearch.** Autoresearch optimises one thing (usually a prompt) against one metric. a\* optimises any artifact against a multi-dimensional evaluation model with independent tracks, budget-aware exploration, and cross-run learning via dispositions (learned priors that accumulate across runs).
 
 ---
 
@@ -51,7 +51,7 @@ a\* runs in five phases:
 
 ### 1. Onboarding
 
-An interactive dialogue — never skipped, never auto-inferred. The system decomposes your goal into **tracks** (independently measurable dimensions), elicits verifier types and rubric anchors for each, establishes hard constraints, negotiates a budget, drafts the rubrics from your answers, and gets explicit confirmation before any experiment runs.
+An interactive dialogue — never skipped, never auto-inferred. The system decomposes your goal into **tracks** (independently measurable dimensions), elicits verifier types and evaluation criteria for each, establishes hard constraints, negotiates a budget, and gets explicit confirmation before any experiment runs.
 
 ### 2. Pre-run preparation
 
@@ -81,7 +81,7 @@ Three memory stores:
 | **Episodic** | Across runs | Every round reflection verbatim; run summaries |
 | **Dispositions** | Across runs | Learned priors keyed on (problem class, action intent) |
 
-Dispositions are the long-term knowledge base. They condition future actions based on what worked before — and what didn't. When no relevant disposition exists, a\* can run a **meta-research step**: look up best practices, synthesise into a candidate disposition, apply it, observe the outcome, and update confidence.
+Dispositions are the long-term knowledge base. They condition future actions based on what worked before — and what didn't. When no relevant disposition exists, a\* can run an optional **meta-research step** if the mission explicitly enables external research: look up best practices, synthesise into a candidate disposition, apply it, observe the outcome, and update confidence.
 
 ### 5. Post-run report
 
@@ -97,7 +97,7 @@ Every track declares one of five verifier types:
 |---|---|---|
 | **Deterministic** | Formula / regex / rule | Word count, format compliance, schema validation |
 | **External tool** | CLI subprocess | `pyright`, `pytest`, `eslint`, `lighthouse`, `vale`, `bandit` |
-| **LLM judge** | Structured LLM call with fixed rubric | Readability, tone, documentation quality |
+| **LLM judge** | Structured LLM call with fixed scoring criteria | Readability, tone, documentation quality |
 | **Hybrid** | Tool + LLM judge, aggregated | Factual accuracy (entity check gates quality score) |
 | **Human gate** | Pause and ask the user | Brand approval, legal sign-off, aesthetics |
 
@@ -107,11 +107,11 @@ Verifiers are **immutable during a run**. This is the canonical failure mode of 
 
 LLM judge tracks can run in **self** mode (the host agent evaluates inline) or **external** mode (a separate model is invoked via subprocess). External mode provides genuine evaluator independence — the model that mutates the artifact is not the model that judges it. This also solves the safety-filter problem: if the host model's AUP policies conflict with the domain (medical, security, pharmaceutical), an external judge with different policies can evaluate the content without refusals.
 
-The external judge contract is simple: a\* writes a JSON request file (rubric + artifact), calls your command, and parses a JSON response (score + rationale) from stdout. Bring your own model — Gemini, GPT, Ollama, anything with a CLI wrapper.
+The external judge contract is simple: a\* writes a JSON request file (criteria + artifact), calls your command, and parses a JSON response (score + rationale) from stdout. Bring your own model — Gemini, GPT, Ollama, anything with a CLI wrapper.
 
 ### Safety-filter resilience
 
-When an LLM call (mutation or judgement) is refused by safety filters, a\* treats it as a recoverable fault. It detects the refusal, rephrases with context framing or clinical distancing, and retries up to twice before escalating to the user with specific options (switch to external judge, reword rubric, skip track, or abort). Every rejection is logged for the post-run report. During onboarding, a\* proactively recommends external judges for domains likely to trigger filters.
+When an LLM call (mutation or judgement) is refused by safety filters, a\* treats it as a recoverable fault. It detects the refusal, rephrases with context framing or clinical distancing, and retries up to twice before escalating to the user with specific options (switch to external judge, adjust scoring criteria, skip track, or abort). Every rejection is logged for the post-run report. During onboarding, a\* proactively recommends external judges for domains likely to trigger filters.
 
 ---
 
@@ -166,6 +166,12 @@ git clone https://github.com/chrisvoncsefalvay/autostar.git
 cp -r autostar/autostar-skill ~/.claude/skills/autostar-skill
 ```
 
+Or install via `skill.sh`:
+
+```bash
+npx skills add chrisvoncsefalvay/autostar
+```
+
 Or install directly from a release:
 
 ```bash
@@ -182,7 +188,7 @@ The `.skill` format is a ZIP archive containing a `SKILL.md` (the main instructi
 
 The portability contract for that adapter is documented in `autostar-skill/references/runtime-capabilities.md`. Without that layer, compatibility should be treated as partial rather than drop-in.
 
-This repo now includes a full-support Claude Code adapter in `autostar-skill/references/adapter-claude-code.md`, a reduced-support Claude.ai adapter in `autostar-skill/references/adapter-claude-ai.md` (also applicable to Claude Desktop/Mobile when they share the same inline presentation profile), an explicit unsupported chat-only boundary in `autostar-skill/references/adapter-chat-only.md`, and reusable runtime profile/template files under `autostar-skill/runtime-profiles/`.
+This repo now includes a full-support Claude Code adapter in `autostar-skill/references/adapter-claude-code.md`, full-support Codex, Gemini CLI, and Pi coding-agent adapters in `autostar-skill/references/adapter-codex.md`, `autostar-skill/references/adapter-gemini.md`, and `autostar-skill/references/adapter-pi.md`, a reduced-support Claude.ai adapter in `autostar-skill/references/adapter-claude-ai.md` (also applicable to Claude Desktop/Mobile when they share the same inline presentation profile), an explicit unsupported chat-only boundary in `autostar-skill/references/adapter-chat-only.md`, and reusable runtime profile/template files under `autostar-skill/runtime-profiles/`.
 
 You can inspect or select profiles with:
 
@@ -247,12 +253,18 @@ autostar/
       memory.md                # Memory architecture and dispositions
       runtime-capabilities.md  # Adapter contract for non-Claude runtimes
       adapter-claude-code.md   # Concrete full-support Claude Code adapter
+      adapter-codex.md         # Concrete full-support Codex adapter
+      adapter-gemini.md        # Concrete full-support Gemini CLI adapter
       adapter-claude-ai.md     # Concrete reduced-support Claude.ai adapter
+      adapter-pi.md            # Concrete full-support Pi coding-agent adapter
       adapter-chat-only.md     # Explicit unsupported chat-only boundary
       adapter-template.md      # Checklist for new runtime adapters
     runtime-profiles/
       claude-code.json         # Machine-readable Claude Code capability profile
+      codex.json               # Machine-readable Codex capability profile
+      gemini.json              # Machine-readable Gemini CLI capability profile
       claude-ai.json           # Machine-readable Claude.ai capability profile
+      pi.json                  # Machine-readable Pi coding-agent capability profile
       chat-only.json           # Machine-readable unsupported chat-only profile
       template.json            # Starting point for new runtime adapters
   schemas/                     # JSON Schemas for output formats
@@ -277,7 +289,7 @@ a\* is built on seven principles:
 
 1. **No silent inference.** Every decision point requires explicit user confirmation. Pre-populate inferred values as defaults; never silently assume.
 
-2. **Immutable evaluation.** Verifiers, rubrics, and scoring functions do not change during a run. The evaluator is the ground truth. Tampering with it is the canonical failure mode.
+2. **Immutable evaluation.** Verifiers, scoring criteria, and scoring functions do not change during a run. The evaluator is the ground truth. Tampering with it is the canonical failure mode.
 
 3. **Statistical confidence.** Laps run multiple steps to get distributions, not point estimates. Verdicts (promising / exhausted / noisy) emerge from distribution analysis, not single observations.
 
@@ -308,7 +320,7 @@ This validates the skill structure and produces `dist/autostar-skill.skill`.
 
 ## Contributing
 
-Contributions are welcome. The skill's behaviour is defined entirely by `SKILL.md` and its reference files — no runtime code to compile, no models to train. If you want to improve the optimisation loop, the rubric system, or the memory architecture, those are the files to edit.
+Contributions are welcome. The skill's behaviour is defined entirely by `SKILL.md` and its reference files — no runtime code to compile, no models to train. If you want to improve the optimisation loop, the evaluation system, or the memory architecture, those are the files to edit.
 
 Please open an issue before large changes to discuss the approach.
 

@@ -8,11 +8,17 @@ If you are implementing a* in another agent framework, start here.
 
 Concrete examples and scaffolds:
 - `runtime-profiles/claude-code.json`
+- `runtime-profiles/codex.json`
+- `runtime-profiles/gemini.json`
 - `runtime-profiles/claude-ai.json`
+- `runtime-profiles/pi.json`
 - `runtime-profiles/chat-only.json`
 - `runtime-profiles/template.json`
 - `references/adapter-claude-code.md`
+- `references/adapter-codex.md`
+- `references/adapter-gemini.md`
 - `references/adapter-claude-ai.md`
+- `references/adapter-pi.md`
 - `references/adapter-chat-only.md`
 - `references/adapter-template.md`
 - `scripts/runtime_profile.py`

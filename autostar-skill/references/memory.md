@@ -182,19 +182,27 @@ a critical action class.
 
 Protocol:
 1. Identify the action class and problem class in plain language
-2. Formulate a best-practice query (e.g., "best practices for improving
-   type annotation coverage in Python FastAPI routes")
-3. Execute a web search or documentation fetch
-4. Synthesise the retrieved content into a candidate disposition prior
-5. Record provenance as `looked_up_from_web` with source URL
-6. Apply the candidate on the next relevant action
-7. Observe outcome; update confidence accordingly
+2. Check the mission's `research_policy`
+3. If `research_policy.enabled` is false, abort the meta-research step
+4. Formulate a best-practice query that avoids sending source artifacts or secrets
+5. Prefer local references, bundled docs, and installed tool help first
+6. If external lookup is allowed, prefer allowlisted/vendor documentation before general web search
+7. Only include artifact/code excerpts in an external query if `artifact_sharing` was explicitly approved
+8. Synthesise the retrieved content into a candidate disposition prior
+9. Record provenance as `looked_up_from_web` with source URL
+10. Apply the candidate on the next relevant action
+11. Observe outcome; update confidence accordingly
 
 The meta-research step costs budget. Gate it:
 - Do not trigger if budget_remaining < 20%
 - Do not trigger more than once per round per action class
 - Record the query and source in `step_log.jsonl` as a special
   `meta_research` entry
+- Record whether the step used `local_only`, `allowlisted_external`, or `open_web`
+
+Default policy:
+- External research is disabled unless the user explicitly enabled it during onboarding
+- Artifact sharing to external services is disabled unless separately approved
 
 ---
 

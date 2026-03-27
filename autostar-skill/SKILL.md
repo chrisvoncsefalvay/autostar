@@ -84,11 +84,17 @@ If a capability is missing, follow the fallback policy in
 
 Concrete runtime profiles and adapters live in:
 - `runtime-profiles/claude-code.json`
+- `runtime-profiles/codex.json`
+- `runtime-profiles/gemini.json`
 - `runtime-profiles/claude-ai.json`
+- `runtime-profiles/pi.json`
 - `runtime-profiles/chat-only.json`
 - `runtime-profiles/template.json`
 - `references/adapter-claude-code.md`
+- `references/adapter-codex.md`
+- `references/adapter-gemini.md`
 - `references/adapter-claude-ai.md`
+- `references/adapter-pi.md`
 - `references/adapter-chat-only.md`
 - `references/adapter-template.md`
 - `scripts/runtime_profile.py`
@@ -530,13 +536,19 @@ The memory agent runs a **consolidation pass** at the end of each round:
 - Did a disposition prove wrong? Flag it with a negative exemplar.
 - Should a problem class be forked? (Two sub-classes behaving differently)
 
-The memory agent also runs a **meta-research step** when disposition confidence
-is below threshold for an upcoming action class:
-1. Look up best practice (web search, documentation, prior art)
-2. Synthesise into a candidate disposition
-3. Apply on the next action
-4. Observe outcome; confirm or reject the looked-up guidance
-5. Record provenance: `looked_up_from_web | learned_from_run | user_specified`
+The memory agent may run a **meta-research step** only when the mission has
+explicitly enabled external research. If research is disabled, skip this path and
+continue using only local evidence, run history, user guidance, and bundled
+references.
+
+If enabled and disposition confidence is below threshold for an upcoming action class:
+1. Prefer local references, bundled docs, and tool help before any network fetch
+2. If external lookup is still justified, prefer vendor docs or a mission allowlist over the open web
+3. Do not send artifact contents, source code, secrets, or proprietary identifiers to external services unless the user separately approved that disclosure
+4. Synthesise into a candidate disposition
+5. Apply on the next action
+6. Observe outcome; confirm or reject the looked-up guidance
+7. Record provenance: `looked_up_from_web | learned_from_run | user_specified`
 
 ---
 
@@ -566,7 +578,10 @@ Read these when the relevant section is reached:
 | `references/memory.md` | When reading/writing disposition library |
 | `references/runtime-capabilities.md` | Before adapting a* to any non-Claude runtime |
 | `references/adapter-claude-code.md` | When running a* in Claude Code full-support mode |
+| `references/adapter-codex.md` | When running a* in Codex full-support mode |
+| `references/adapter-gemini.md` | When running a* in Gemini CLI full-support mode |
 | `references/adapter-claude-ai.md` | When running a* in Claude.ai reduced-support mode |
+| `references/adapter-pi.md` | When running a* in Pi full-support mode |
 | `references/adapter-chat-only.md` | To understand the unsupported chat-only boundary |
 | `references/adapter-template.md` | When creating a new runtime adapter |
 

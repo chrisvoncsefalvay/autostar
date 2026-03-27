@@ -37,6 +37,30 @@
         "meta_reserve_pct": { "type": "number", "default": 12.5 }
       }
     },
+    "research_policy": {
+      "type": "object",
+      "description": "Whether the run may use external research and under what disclosure constraints.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether any networked or remote research is allowed during the run."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["local_only", "allowlisted_external", "open_web"],
+          "description": "The highest-permitted research scope for this run."
+        },
+        "artifact_sharing": {
+          "type": "boolean",
+          "description": "Whether artifact contents may be sent to external services as part of research queries."
+        },
+        "allowed_sources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Optional domain/source allowlist when mode is allowlisted_external."
+        }
+      }
+    },
     "stopping_criteria": {
       "type": "object",
       "properties": {
