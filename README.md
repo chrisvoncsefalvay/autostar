@@ -40,7 +40,7 @@ a\* works with **verifiable-ish rewards** instead. It combines hard signals (typ
 
 The result is an optimisation loop that works on anything you can decompose into measurable dimensions: code quality, documentation, prompt engineering, writing style, API design, accessibility compliance, configuration tuning.
 
-**This is not autoresearch.** Autoresearch optimises one thing (usually a prompt) against one metric. a\* optimises any artifact against a multi-dimensional evaluation model with independent tracks, budget-aware exploration, and cross-run learning via dispositions (learned priors that accumulate across runs).
+**This is not autoresearch.** Autoresearch optimises one thing (usually a training recipe) against one metric. a\* optimises any artifact against a multi-dimensional evaluation model with independent tracks, budget-aware exploration, and cross-run learning via dispositions (learned priors that accumulate across runs).
 
 ---
 
