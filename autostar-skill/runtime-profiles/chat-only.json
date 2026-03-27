@@ -1,0 +1,47 @@
+{
+  "runtime": {
+    "name": "Chat-only",
+    "version": null
+  },
+  "support_level": "unsupported",
+  "capabilities": {
+    "structured_choice": "basic",
+    "freeform_input": true,
+    "file_presentation": "none",
+    "local_html": "none",
+    "subprocess": false,
+    "pause_resume": true,
+    "file_read_write": "none",
+    "long_term_memory": false
+  },
+  "native_mappings": {
+    "choose": "plain chat prompt with numbered replies",
+    "ask": "normal conversation turn",
+    "present": null,
+    "run": null,
+    "pause": "wait for next user response",
+    "read": null,
+    "write": null,
+    "append": null,
+    "memory_lookup": null,
+    "memory_store": null
+  },
+  "downgrades": [
+    {
+      "capability": "file_presentation",
+      "effect": "no canonical file review flow"
+    },
+    {
+      "capability": "local_html",
+      "effect": "visualiser unavailable"
+    },
+    {
+      "capability": "subprocess",
+      "effect": "external_tool and subprocess-backed hybrid verifiers unavailable"
+    },
+    {
+      "capability": "file_read_write",
+      "effect": "no persistent run artifacts or append-only logs"
+    }
+  ]
+}

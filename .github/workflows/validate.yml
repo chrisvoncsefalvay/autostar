@@ -1,0 +1,51 @@
+name: Validate skill
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Validate SKILL.md structure
+        run: python autostar-skill/scripts/quick_validate.py autostar-skill/
+
+      - name: Validate runtime profiles
+        run: python autostar-skill/scripts/runtime_profile.py validate
+
+      - name: Validate JSON schemas
+        run: |
+          python -c "
+          import json, pathlib, sys
+          errors = 0
+          for f in pathlib.Path('schemas').glob('*.schema.json'):
+              try:
+                  data = json.loads(f.read_text())
+                  assert '\$schema' in data, 'missing \$schema'
+                  assert 'title' in data, 'missing title'
+                  print(f'  OK: {f.name}')
+              except Exception as e:
+                  print(f'  FAIL: {f.name}: {e}')
+                  errors += 1
+          sys.exit(1 if errors else 0)
+          "
+
+      - name: Check for AUTOLOOP references (should be AUTOSTAR)
+        run: |
+          if grep -ri 'autoloop' autostar-skill/ --include='*.md' --include='*.html' --include='*.py'; then
+            echo "::error::Found 'autoloop' references that should be 'autostar'"
+            exit 1
+          fi
+          echo "No stale references found."

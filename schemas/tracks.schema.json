@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/tracks.schema.json",
+  "title": "a* track definitions",
+  "description": "Array of track definitions written once at run start to tracks.json.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "label", "required"],
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Machine-readable track identifier"
+      },
+      "label": {
+        "type": "string",
+        "description": "Human-readable track label"
+      },
+      "required": {
+        "type": "boolean",
+        "description": "If true, failure on this track gates the composite score"
+      },
+      "weight": {
+        "type": ["number", "null"],
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Weight in composite score (null for required tracks)"
+      },
+      "colour": {
+        "type": "string",
+        "pattern": "^#[0-9a-fA-F]{6}$",
+        "description": "Hex colour for visualiser rendering"
+      },
+      "verifier_type": {
+        "type": "string",
+        "enum": ["deterministic", "external_tool", "llm_judge", "hybrid", "human_gate"]
+      },
+      "threshold": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Target score threshold"
+      },
+      "ratchet": {
+        "type": "string",
+        "enum": ["independent", "composite"],
+        "default": "independent"
+      }
+    }
+  }
+}

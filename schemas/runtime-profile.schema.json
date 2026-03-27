@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Autostar Runtime Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "runtime",
+    "support_level",
+    "capabilities",
+    "native_mappings",
+    "downgrades"
+  ],
+  "properties": {
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "support_level": {
+      "type": "string",
+      "enum": ["full", "reduced", "unsupported"]
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structured_choice",
+        "freeform_input",
+        "file_presentation",
+        "local_html",
+        "subprocess",
+        "pause_resume",
+        "file_read_write",
+        "long_term_memory"
+      ],
+      "properties": {
+        "structured_choice": {
+          "type": "string",
+          "enum": ["full", "basic", "none"]
+        },
+        "freeform_input": { "type": "boolean" },
+        "file_presentation": {
+          "type": "string",
+          "enum": ["inline", "external", "none"]
+        },
+        "local_html": {
+          "type": "string",
+          "enum": ["inline", "external", "none"]
+        },
+        "subprocess": { "type": "boolean" },
+        "pause_resume": { "type": "boolean" },
+        "file_read_write": {
+          "type": "string",
+          "enum": ["full", "limited", "none"]
+        },
+        "long_term_memory": { "type": "boolean" }
+      }
+    },
+    "native_mappings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "choose",
+        "ask",
+        "present",
+        "run",
+        "pause",
+        "read",
+        "write",
+        "append",
+        "memory_lookup",
+        "memory_store"
+      ],
+      "properties": {
+        "choose": { "type": ["string", "null"] },
+        "ask": { "type": ["string", "null"] },
+        "present": { "type": ["string", "null"] },
+        "run": { "type": ["string", "null"] },
+        "pause": { "type": ["string", "null"] },
+        "read": { "type": ["string", "null"] },
+        "write": { "type": ["string", "null"] },
+        "append": { "type": ["string", "null"] },
+        "memory_lookup": { "type": ["string", "null"] },
+        "memory_store": { "type": ["string", "null"] }
+      }
+    },
+    "downgrades": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capability", "effect"],
+        "properties": {
+          "capability": { "type": "string", "minLength": 1 },
+          "effect": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

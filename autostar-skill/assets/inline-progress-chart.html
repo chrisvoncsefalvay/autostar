@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Söhne:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #2b2b2b;
+    --surface: #343434;
+    --surface-raised: #3d3d3d;
+    --border: rgba(255,255,255,0.06);
+    --border-subtle: rgba(255,255,255,0.04);
+    --text: #ececec;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #707070;
+    --accent: #d4a27a;
+    --accent-muted: rgba(212,162,122,0.15);
+    --kept: #7dcea0;
+    --kept-muted: rgba(125,206,160,0.12);
+    --kept-subtle: rgba(125,206,160,0.06);
+    --reverted: #c0756b;
+    --reverted-muted: rgba(192,117,107,0.10);
+    --reverted-subtle: rgba(192,117,107,0.05);
+    --link-color: #85b8d0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Söhne', -apple-system, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* ── Header ──────────────────────────────────────────── */
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .head-left {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .head-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .head-status {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .head-stats {
+    display: flex;
+    gap: 16px;
+  }
+  .hs {
+    text-align: right;
+    line-height: 1.2;
+  }
+  .hs-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .hs-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Chart ───────────────────────────────────────────── */
+  .section {
+    padding: 12px 16px 8px;
+  }
+  .section-title {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .chart-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 10px 8px;
+    position: relative;
+  }
+
+  /* ── Budget ──────────────────────────────────────────── */
+  .budget {
+    padding: 6px 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .budget-label {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    min-width: 40px;
+  }
+  .budget-track {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .budget-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 1px;
+    opacity: 0.7;
+  }
+  .budget-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  /* ── Genealogy ───────────────────────────────────────── */
+  .gen-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+  }
+  .gen-round {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 22px;
+  }
+  .gen-pips {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .gen-pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .gen-pip.k { background: var(--kept); opacity: 0.8; }
+  .gen-pip.r { background: var(--reverted); opacity: 0.35; }
+  .gen-sep {
+    width: 1px;
+    height: 8px;
+    background: var(--border);
+    margin: 0 1px;
+  }
+  .gen-best {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: auto;
+  }
+
+  /* ── Reflections ─────────────────────────────────────── */
+  .refl {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  .refl-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .refl-round {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .refl-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--kept);
+    font-weight: 500;
+  }
+  .refl-body {
+    padding: 8px 12px 10px;
+  }
+  .refl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .refl-cell {
+    padding: 5px 8px;
+    background: var(--surface-raised);
+    border-radius: 4px;
+  }
+  .refl-cell-label {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.03em;
+  }
+  .refl-cell-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 1px;
+  }
+  .refl-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    padding-left: 8px;
+    border-left: 2px solid var(--border);
+  }
+  .refl-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-tertiary);
+  }
+  .refl-meta-track { color: var(--accent); }
+
+  /* ── Tooltip ─────────────────────────────────────────── */
+  .tip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    line-height: 1.5;
+    display: none;
+    z-index: 10;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tip-id { color: var(--text-tertiary); font-size: 10px; }
+  .tip-score { font-weight: 500; }
+  .tip-kept { color: var(--kept); }
+  .tip-rev { color: var(--text-tertiary); }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="head-left">
+    <span class="head-title">a* progress</span>
+    <span class="head-status">running</span>
+  </div>
+  <div class="head-stats">
+    <div class="hs"><div class="hs-val" id="hScore">—</div><div class="hs-label">score</div></div>
+    <div class="hs"><div class="hs-val" id="hDelta">—</div><div class="hs-label">delta</div></div>
+    <div class="hs"><div class="hs-val" id="hKept">—</div><div class="hs-label">kept</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Composite score</div>
+  <div class="chart-frame">
+    <svg id="chart" width="100%" viewBox="0 0 600 120" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tip" id="tip"></div>
+  </div>
+</div>
+
+<div class="budget">
+  <span class="budget-label">budget</span>
+  <div class="budget-track"><div class="budget-fill" id="bFill" style="width:0%"></div></div>
+  <span class="budget-pct" id="bText">—</span>
+</div>
+
+<div class="section">
+  <div class="section-title">Genealogy</div>
+  <div id="gen"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Reflections</div>
+  <div id="refl"></div>
+</div>
+
+<script>
+// ── Sample data ───────────────────────────────────────────────────────────
+const STEPS = [
+  { id:'r0_l0_s0', round:0, lap:0, composite:0.42, outcome:'keep',   play:null },
+  { id:'r1_l0_s0', round:1, lap:0, composite:0.48, outcome:'keep',   play:'tighten_types' },
+  { id:'r1_l0_s1', round:1, lap:0, composite:0.39, outcome:'revert', play:'tighten_types' },
+  { id:'r1_l0_s2', round:1, lap:0, composite:0.52, outcome:'keep',   play:'tighten_types' },
+  { id:'r1_l0_s3', round:1, lap:0, composite:0.44, outcome:'revert', play:'tighten_types' },
+  { id:'r1_l1_s0', round:1, lap:1, composite:0.55, outcome:'keep',   play:'doc_expansion' },
+  { id:'r1_l1_s1', round:1, lap:1, composite:0.50, outcome:'revert', play:'doc_expansion' },
+  { id:'r1_l1_s2', round:1, lap:1, composite:0.58, outcome:'keep',   play:'doc_expansion' },
+  { id:'r2_l0_s0', round:2, lap:0, composite:0.61, outcome:'keep',   play:'doc_expansion' },
+  { id:'r2_l0_s1', round:2, lap:0, composite:0.57, outcome:'revert', play:'doc_expansion' },
+  { id:'r2_l0_s2', round:2, lap:0, composite:0.64, outcome:'keep',   play:'doc_expansion' },
+  { id:'r2_l0_s3', round:2, lap:0, composite:0.60, outcome:'revert', play:'doc_expansion' },
+  { id:'r2_l0_s4', round:2, lap:0, composite:0.68, outcome:'keep',   play:'doc_expansion' },
+  { id:'r2_l1_s0', round:2, lap:1, composite:0.66, outcome:'revert', play:'error_handling' },
+  { id:'r2_l1_s1', round:2, lap:1, composite:0.71, outcome:'keep',   play:'error_handling' },
+  { id:'r2_l1_s2', round:2, lap:1, composite:0.63, outcome:'revert', play:'error_handling' },
+  { id:'r2_l1_s3', round:2, lap:1, composite:0.70, outcome:'revert', play:'error_handling' },
+  { id:'r2_l1_s4', round:2, lap:1, composite:0.74, outcome:'keep',   play:'error_handling' },
+  { id:'r3_l0_s0', round:3, lap:0, composite:0.76, outcome:'keep',   play:'combined_polish' },
+  { id:'r3_l0_s1', round:3, lap:0, composite:0.72, outcome:'revert', play:'combined_polish' },
+  { id:'r3_l0_s2', round:3, lap:0, composite:0.73, outcome:'revert', play:'combined_polish' },
+  { id:'r3_l0_s3', round:3, lap:0, composite:0.78, outcome:'keep',   play:'combined_polish' },
+  { id:'r3_l0_s4', round:3, lap:0, composite:0.75, outcome:'revert', play:'combined_polish' },
+  { id:'r3_l0_s5', round:3, lap:0, composite:0.80, outcome:'keep',   play:'combined_polish' },
+  { id:'r3_l0_s6', round:3, lap:0, composite:0.77, outcome:'revert', play:'combined_polish' },
+  { id:'r3_l0_s7', round:3, lap:0, composite:0.82, outcome:'keep',   play:'combined_polish' },
+];
+
+const REFLECTIONS = [
+  { round:1, score_at_end:0.58, worth_pursuing:'yes', ask_user:false, pivot:'none',
+    reasoning:'Type tightening yielded moderate gains (0.42 → 0.52) but doc expansion was more effective (→ 0.58). Next round should focus on documentation while maintaining type discipline.',
+    limiting_track:'docstring_quality', budget_remaining_pct:78, pace_projection:0.85 },
+  { round:2, score_at_end:0.74, worth_pursuing:'yes', ask_user:false, pivot:'minor',
+    reasoning:'Strong progress this round (+0.16). Doc expansion hitting diminishing returns; error handling opened a new improvement vector. Combining both next round.',
+    limiting_track:'error_coverage', budget_remaining_pct:55, pace_projection:0.88 },
+  { round:3, score_at_end:0.82, worth_pursuing:'yes', ask_user:false, pivot:'none',
+    reasoning:'Combined polish play effective. 8 steps with 4 kept — 50% hit rate on a challenging frontier. Trajectory suggests 0.85+ achievable within remaining budget.',
+    limiting_track:'docstring_quality', budget_remaining_pct:33, pace_projection:0.89 },
+];
+
+const BUDGET = { total_steps:80, used_steps:STEPS.length };
+
+// ── Render ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const kept = STEPS.filter(s => s.outcome === 'keep');
+  const last = kept[kept.length - 1];
+  const base = STEPS[0];
+
+  document.getElementById('hScore').textContent = last ? last.composite.toFixed(2) : '—';
+  document.getElementById('hKept').textContent = kept.length + '/' + STEPS.length;
+  if (last && base) {
+    const d = last.composite - base.composite;
+    document.getElementById('hDelta').textContent = (d >= 0 ? '+' : '') + d.toFixed(2);
+    document.getElementById('hDelta').style.color = d >= 0 ? '#7dcea0' : '#c0756b';
+  }
+
+  const pct = Math.min(100, (BUDGET.used_steps / BUDGET.total_steps) * 100);
+  document.getElementById('bFill').style.width = pct + '%';
+  document.getElementById('bText').textContent = BUDGET.used_steps + ' / ' + BUDGET.total_steps + ' steps';
+
+  drawChart(STEPS);
+  drawGen(STEPS);
+  drawRefl(REFLECTIONS);
+});
+
+function drawChart(steps) {
+  const W = 600, H = 120, PL = 28, PR = 8, PT = 8, PB = 16;
+  const pW = W - PL - PR, pH = H - PT - PB;
+
+  const vals = steps.map(s => s.composite);
+  const lo = Math.min(...vals) * 0.93;
+  const hi = Math.min(1, Math.max(...vals) * 1.05);
+  const rng = hi - lo || 0.01;
+
+  const xOf = i => PL + (i / Math.max(steps.length - 1, 1)) * pW;
+  const yOf = v => PT + pH - ((v - lo) / rng) * pH;
+
+  let svg = '';
+
+  // Grid — very subtle
+  for (let t = 0; t <= 4; t++) {
+    const v = lo + rng * t / 4;
+    const yy = yOf(v);
+    svg += `<line x1="${PL}" y1="${yy}" x2="${W-PR}" y2="${yy}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+    svg += `<text x="${PL-4}" y="${yy+3}" text-anchor="end" fill="#707070" font-size="8" font-family="'JetBrains Mono',monospace">${v.toFixed(2)}</text>`;
+  }
+
+  // Round dividers
+  const rounds = [...new Set(steps.map(s => s.round))];
+  rounds.forEach(r => {
+    const idx = steps.findIndex(s => s.round === r);
+    if (idx <= 0) return;
+    const rx = xOf(idx);
+    svg += `<line x1="${rx}" y1="${PT}" x2="${rx}" y2="${H-PB}" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="2,4"/>`;
+  });
+
+  // Baseline
+  const bY = yOf(steps[0].composite);
+  svg += `<line x1="${PL}" y1="${bY}" x2="${W-PR}" y2="${bY}" stroke="rgba(212,162,122,0.2)" stroke-width="1" stroke-dasharray="3,4"/>`;
+
+  // Kept-step index
+  const keptIdx = [];
+  steps.forEach((s, i) => { if (s.outcome === 'keep') keptIdx.push({ ...s, i }); });
+
+  function ancestor(idx) {
+    let a = null;
+    for (const k of keptIdx) { if (k.i < idx) a = k; else break; }
+    return a;
+  }
+
+  // Ghost beziers
+  steps.forEach((s, i) => {
+    if (s.outcome === 'keep') return;
+    const a = ancestor(i);
+    if (!a) return;
+    const ax = xOf(a.i), ay = yOf(a.composite);
+    const gx = xOf(i), gy = yOf(s.composite);
+    const dx = gx - ax;
+    svg += `<path d="M${ax},${ay} C${ax+dx*0.5},${ay} ${ax+dx*0.75},${gy} ${gx},${gy}" fill="none" stroke="rgba(192,117,107,0.12)" stroke-width="1"/>`;
+  });
+
+  // Ghost dots
+  steps.forEach((s, i) => {
+    if (s.outcome === 'keep') return;
+    const cx = xOf(i), cy = yOf(s.composite);
+    svg += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="rgba(192,117,107,0.15)" stroke="rgba(192,117,107,0.25)" stroke-width="0.75" data-idx="${i}"/>`;
+  });
+
+  // Winning staircase
+  if (keptIdx.length >= 2) {
+    let d = `M${xOf(keptIdx[0].i)},${yOf(keptIdx[0].composite)}`;
+    for (let j = 1; j < keptIdx.length; j++) {
+      const px = xOf(keptIdx[j].i);
+      const prevY = yOf(keptIdx[j-1].composite);
+      const curY = yOf(keptIdx[j].composite);
+      d += ` L${px},${prevY} L${px},${curY}`;
+    }
+
+    const lastX = xOf(keptIdx[keptIdx.length-1].i);
+    const firstX = xOf(keptIdx[0].i);
+    const bot = H - PB;
+
+    svg += `<defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7dcea0" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#7dcea0" stop-opacity="0"/>
+    </linearGradient></defs>`;
+    svg += `<path d="${d} L${lastX},${bot} L${firstX},${bot} Z" fill="url(#wg)"/>`;
+    svg += `<path d="${d}" fill="none" stroke="#7dcea0" stroke-width="1.5" stroke-linejoin="miter" opacity="0.7"/>`;
+  }
+
+  // Kept dots
+  keptIdx.forEach(s => {
+    svg += `<circle cx="${xOf(s.i)}" cy="${yOf(s.composite)}" r="3" fill="#7dcea0" opacity="0.85" data-idx="${s.i}"/>`;
+  });
+
+  document.getElementById('chart').innerHTML = svg;
+
+  // Tooltip
+  const frame = document.querySelector('.chart-frame');
+  const tip = document.getElementById('tip');
+
+  frame.addEventListener('mousemove', e => {
+    const svgEl = document.getElementById('chart');
+    const sr = svgEl.getBoundingClientRect();
+    const fr = frame.getBoundingClientRect();
+    const mx = (e.clientX - sr.left) * (W / sr.width);
+
+    let best = Infinity, bi = 0;
+    steps.forEach((s, i) => { const d = Math.abs(xOf(i) - mx); if (d < best) { best = d; bi = i; } });
+    if (best * (sr.width / W) > 18) { tip.style.display = 'none'; return; }
+
+    const s = steps[bi];
+    const k = s.outcome === 'keep';
+    tip.innerHTML = `<span class="tip-id">${s.id}</span><br><span class="tip-score ${k?'tip-kept':'tip-rev'}">${s.composite.toFixed(3)}</span> ${k?'kept':'reverted'}${s.play?'<br>'+s.play:''}`;
+    tip.style.display = 'block';
+    tip.style.left = Math.min(e.clientX - fr.left + 10, fr.offsetWidth - 140) + 'px';
+    tip.style.top = (e.clientY - fr.top - 8) + 'px';
+  });
+  frame.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+}
+
+function drawGen(steps) {
+  const el = document.getElementById('gen');
+  const rounds = [...new Set(steps.map(s => s.round))];
+  el.innerHTML = rounds.map(r => {
+    const rs = steps.filter(s => s.round === r);
+    const laps = [...new Set(rs.map(s => s.lap))];
+    const kept = rs.filter(s => s.outcome === 'keep');
+    const best = kept.length ? Math.max(...kept.map(s => s.composite)) : 0;
+
+    const pips = laps.map((lap, li) => {
+      const ls = rs.filter(s => s.lap === lap);
+      const dots = ls.map(s => `<div class="gen-pip ${s.outcome==='keep'?'k':'r'}" title="${s.id}"></div>`).join('');
+      return (li > 0 ? '<div class="gen-sep"></div>' : '') + dots;
+    }).join('');
+
+    return `<div class="gen-row">
+      <span class="gen-round">R${r}</span>
+      <div class="gen-pips">${pips}</div>
+      <span class="gen-best">${best.toFixed(2)}</span>
+    </div>`;
+  }).join('');
+}
+
+function drawRefl(refls) {
+  const el = document.getElementById('refl');
+  if (!refls.length) { el.innerHTML = '<div style="font-size:11px;color:#707070">No reflections yet.</div>'; return; }
+
+  el.innerHTML = refls.map(r => {
+    const wCol = r.worth_pursuing === 'yes' ? '#7dcea0' : r.worth_pursuing === 'no' ? '#c0756b' : '#d4a27a';
+    const aCol = r.ask_user ? '#d4a27a' : '#707070';
+    const pCol = r.pivot !== 'none' ? '#d4a27a' : '#707070';
+
+    return `<div class="refl">
+      <div class="refl-head">
+        <span class="refl-round">Round ${r.round}</span>
+        <span class="refl-score">${(r.score_at_end||0).toFixed(2)}</span>
+      </div>
+      <div class="refl-body">
+        <div class="refl-grid">
+          <div class="refl-cell">
+            <div class="refl-cell-label">Worth pursuing</div>
+            <div class="refl-cell-val" style="color:${wCol}">${r.worth_pursuing}</div>
+          </div>
+          <div class="refl-cell">
+            <div class="refl-cell-label">Ask user</div>
+            <div class="refl-cell-val" style="color:${aCol}">${r.ask_user?'yes':'no'}</div>
+          </div>
+          <div class="refl-cell">
+            <div class="refl-cell-label">Pivot</div>
+            <div class="refl-cell-val" style="color:${pCol}">${r.pivot}</div>
+          </div>
+        </div>
+        ${r.reasoning ? `<div class="refl-text">${r.reasoning}</div>` : ''}
+        ${r.limiting_track ? `<div class="refl-meta">
+          <span>limiting: <span class="refl-meta-track">${r.limiting_track}</span></span>
+          ${r.budget_remaining_pct!=null?`<span>budget: ${r.budget_remaining_pct}%</span>`:''}
+          ${r.pace_projection!=null?`<span>pace: ${r.pace_projection.toFixed(2)}</span>`:''}
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

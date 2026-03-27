@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Validate skill
+        run: python autostar-skill/scripts/quick_validate.py autostar-skill/
+
+      - name: Package skill
+        run: |
+          mkdir -p dist
+          python autostar-skill/scripts/package_skill.py autostar-skill/ dist/
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/autostar-skill.skill
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            Download `autostar-skill.skill` and unzip into your skills directory:
+
+            ```bash
+            unzip autostar-skill.skill -d ~/.claude/skills/
+            ```
+
+            Or clone the repo and copy `autostar-skill/` directly.

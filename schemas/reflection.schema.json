@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/reflection.schema.json",
+  "title": "a* round reflection",
+  "description": "One record per round in reflections.jsonl. Mandatory after every round, even when nothing changes.",
+  "type": "object",
+  "required": ["round_id", "laps_completed", "score_trajectory", "limiting_track"],
+  "properties": {
+    "round_id": {
+      "type": "string",
+      "description": "Round identifier (e.g. r2)"
+    },
+    "laps_completed": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "score_trajectory": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "List of lap mean composite scores in this round"
+    },
+    "track_trajectories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "number" }
+      },
+      "description": "Per-track score trajectories across laps"
+    },
+    "limiting_track": {
+      "type": ["string", "null"],
+      "description": "Track that is the current ceiling on composite improvement"
+    },
+    "worth_pursuing": {
+      "type": "string",
+      "enum": ["yes", "no", "uncertain"],
+      "description": "Q1: Should we continue in this direction?"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "2-4 sentence assessment of current trajectory"
+    },
+    "ask_user_trigger": {
+      "type": "string",
+      "enum": ["none", "stuck", "diverging_tracks", "pace_risk", "constraint_conflict"],
+      "description": "Q2: Whether the user should be consulted"
+    },
+    "ask_user_message": {
+      "type": ["string", "null"],
+      "description": "Specific, actionable question for the user (if triggered)"
+    },
+    "pivot": {
+      "type": "string",
+      "enum": ["none", "minor", "major", "abandon"],
+      "description": "Q3: Strategy change decision"
+    },
+    "pivot_reasoning": {
+      "type": "string",
+      "description": "Reasoning for pivot decision (required even when none)"
+    },
+    "next_round_strategy": {
+      "type": "string",
+      "description": "What changes in the next round, if anything"
+    },
+    "budget_remaining_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "pace_projection": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Projected composite score at budget exhaustion"
+    },
+    "score_at_end": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Best composite score at end of this round"
+    }
+  }
+}

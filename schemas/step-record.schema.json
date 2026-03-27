@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/step-record.schema.json",
+  "title": "a* step record",
+  "description": "One record per step in step_log.jsonl. Append-only within a run.",
+  "type": "object",
+  "required": ["id", "track_scores", "composite", "constraints", "cost", "outcome"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^.+_r\\d+_l\\d+_s\\d+$",
+      "description": "Step ID in format {run}_{round}_{lap}_{step}"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Parameter values used for this step"
+    },
+    "play": {
+      "type": ["string", "null"],
+      "description": "Name of the play applied, or null for atomic mutations"
+    },
+    "track_scores": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 },
+      "description": "Per-track scores normalised to [0, 1]"
+    },
+    "composite": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Weighted composite score"
+    },
+    "judge_notes": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Per-track rationale strings from LLM judges"
+    },
+    "constraints": {
+      "type": "string",
+      "enum": ["passed", "rejected"],
+      "description": "Whether hard constraints were satisfied"
+    },
+    "constraint_violated": {
+      "type": "string",
+      "description": "Name of the violated constraint (only when constraints=rejected)"
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "tokens": { "type": "integer", "minimum": 0 },
+        "wall_s": { "type": "number", "minimum": 0 }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["keep", "revert", "partial_keep", "rejected_constraint"],
+      "description": "Ratchet decision for this step"
+    },
+    "rejections": {
+      "type": "array",
+      "description": "Safety-filter rejections encountered during this step",
+      "items": {
+        "type": "object",
+        "required": ["event", "source", "resolved"],
+        "properties": {
+          "event": { "type": "string", "const": "rejection" },
+          "source": { "type": "string", "enum": ["mutation_refused", "judge_refused"] },
+          "track": { "type": "string" },
+          "attempt": { "type": "integer", "minimum": 1 },
+          "strategy": { "type": "string", "enum": ["context_framing", "clinical_distancing", "scope_narrowing", "user_escalation"] },
+          "resolved": { "type": "boolean" },
+          "overhead_tokens": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

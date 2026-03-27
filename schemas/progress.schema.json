@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/progress.schema.json",
+  "title": "a* progress snapshot",
+  "description": "Single-file snapshot of current run state, updated after every step. Designed for consumption by dashboards, CLI tools, and downstream agents.",
+  "type": "object",
+  "required": ["run_id", "status", "updated_at", "current", "budget", "steps_completed"],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier for this run"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["running", "completed", "paused", "failed", "budget_exhausted"],
+      "description": "Current run status"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last update"
+    },
+    "baseline": {
+      "$ref": "#/$defs/score_snapshot",
+      "description": "Scores from the initial baseline step (r0_l0_s0)"
+    },
+    "current": {
+      "allOf": [
+        { "$ref": "#/$defs/score_snapshot" },
+        {
+          "type": "object",
+          "properties": {
+            "step_id": {
+              "type": "string",
+              "description": "ID of the most recent step"
+            }
+          }
+        }
+      ],
+      "description": "Current best scores (after ratchet)"
+    },
+    "delta": {
+      "$ref": "#/$defs/score_snapshot",
+      "description": "Difference between current and baseline (current - baseline)"
+    },
+    "budget": {
+      "type": "object",
+      "properties": {
+        "total_steps": { "type": "integer" },
+        "used_steps": { "type": "integer" },
+        "total_tokens": { "type": "integer" },
+        "used_tokens": { "type": "integer" },
+        "remaining_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "required": ["remaining_pct"]
+    },
+    "rounds_completed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "steps_completed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "steps_kept": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "momentum": {
+      "type": "string",
+      "enum": ["exploiting_successfully", "plateau", "diverging", "recovering"],
+      "description": "Current score momentum signal"
+    },
+    "limiting_track": {
+      "type": ["string", "null"],
+      "description": "Track that is currently the bottleneck"
+    },
+    "last_reflection": {
+      "type": "object",
+      "properties": {
+        "worth_pursuing": { "type": "string", "enum": ["yes", "no", "uncertain"] },
+        "pivot": { "type": "string", "enum": ["none", "minor", "major", "abandon"] },
+        "pace_projection": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "score_snapshot": {
+      "type": "object",
+      "properties": {
+        "composite": { "type": "number", "minimum": 0, "maximum": 1 },
+        "tracks": {
+          "type": "object",
+          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      },
+      "required": ["composite", "tracks"]
+    }
+  }
+}
