@@ -17,8 +17,7 @@ No reward model to train. No environment to build. No GPU cluster to provision. 
 If you just want to install the skill and try it once in Claude Code:
 
 ```bash
-git clone https://github.com/chrisvoncsefalvay/autostar.git
-cp -r autostar/autostar-skill ~/.claude/skills/autostar-skill
+npx skills add chrisvoncsefalvay/autostar
 ```
 
 Then invoke it in Claude Code:
@@ -41,7 +40,13 @@ a\* uses **verifiable-ish rewards** instead. It combines hard signals (type chec
 
 The result: an optimisation loop for anything you can split into measurable dimensions. Code quality, documentation, prompt engineering, writing style, API design, accessibility.
 
-**This is not autoresearch.** Autoresearch optimises one prompt against one metric. a\* optimises any artifact against multiple tracks, with budget-aware search and cross-run learning.
+---
+
+## See it in action
+
+### Fixing this very documentation
+
+[![asciicast](https://asciinema.org/a/875847.svg)](https://asciinema.org/a/875847)
 
 ---
 
