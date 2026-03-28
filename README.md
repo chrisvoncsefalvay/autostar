@@ -43,6 +43,13 @@ The result is an optimisation loop that works on anything you can decompose into
 **This is not autoresearch.** Autoresearch optimises one thing (usually a training recipe) against one metric. a\* optimises any artifact against a multi-dimensional evaluation model with independent tracks, budget-aware exploration, and cross-run learning via dispositions (learned priors that accumulate across runs).
 
 ---
+## See it in action
+
+### Fixing this very documentation
+
+[![asciicast](https://asciinema.org/a/875847.svg)](https://asciinema.org/a/875847)
+
+---
 
 ## How it works
 
