@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 """
-Skill Packager - Creates a distributable .skill file of a skill folder
-
-Usage:
-    python autostar-skill/scripts/package_skill.py <path/to/skill-folder> [output-directory]
-
-Example:
-    python autostar-skill/scripts/package_skill.py autostar-skill/
-    python autostar-skill/scripts/package_skill.py autostar-skill/ ./dist
+Skill packager for Claude Code `.skill` archives and Claude.ai upload `.zip` archives.
 """
 
+import argparse
 import fnmatch
 import sys
 import zipfile
@@ -28,6 +22,16 @@ EXCLUDE_GLOBS = {"*.pyc"}
 EXCLUDE_FILES = {".DS_Store"}
 # Directories excluded only at the skill root (not when nested deeper).
 ROOT_EXCLUDE_DIRS = {"evals"}
+PACKAGE_TARGETS = {
+    "claude-code": {
+        "path": "autostar-skill",
+        "extension": ".skill",
+    },
+    "claude-ai": {
+        "path": "autostar-claude-ai-skill",
+        "extension": ".zip",
+    },
+}
 
 
 def should_exclude(rel_path: Path) -> bool:
@@ -45,7 +49,7 @@ def should_exclude(rel_path: Path) -> bool:
     return any(fnmatch.fnmatch(name, pat) for pat in EXCLUDE_GLOBS)
 
 
-def package_skill(skill_path, output_dir=None):
+def package_skill(skill_path, output_dir=None, extension=".skill", archive_name=None):
     """
     Package a skill folder into a .skill file.
 
@@ -90,7 +94,7 @@ def package_skill(skill_path, output_dir=None):
     else:
         output_path = Path.cwd()
 
-    skill_filename = output_path / f"{skill_name}.skill"
+    skill_filename = output_path / (archive_name or f"{skill_name}{extension}")
 
     # Create the .skill file (zip format)
     try:
@@ -115,27 +119,50 @@ def package_skill(skill_path, output_dir=None):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python autostar-skill/scripts/package_skill.py <path/to/skill-folder> [output-directory]")
-        print("\nExample:")
-        print("  python autostar-skill/scripts/package_skill.py autostar-skill/")
-        print("  python autostar-skill/scripts/package_skill.py autostar-skill/ ./dist")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Package autostar skill artifacts")
+    parser.add_argument("skill_path", nargs="?", help="Path to a skill directory")
+    parser.add_argument("output_dir", nargs="?", help="Output directory for the archive")
+    parser.add_argument(
+        "--target",
+        choices=["claude-code", "claude-ai", "all"],
+        help="Package a predefined target instead of a direct skill path",
+    )
+    args = parser.parse_args()
 
-    skill_path = sys.argv[1]
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else None
+    repo = Path(__file__).resolve().parents[2]
+    output_dir = args.output_dir
+    results = []
 
-    print(f"Packaging skill: {skill_path}")
-    if output_dir:
-        print(f"   Output directory: {output_dir}")
-    print()
-
-    result = package_skill(skill_path, output_dir)
-
-    if result:
-        sys.exit(0)
+    if args.target:
+        if output_dir is None and args.skill_path:
+            output_dir = args.skill_path
+            args.skill_path = None
+        targets = PACKAGE_TARGETS.keys() if args.target == "all" else (args.target,)
+        for target in targets:
+            config = PACKAGE_TARGETS[target]
+            skill_path = repo / config["path"]
+            print(f"Packaging target: {target} ({skill_path})")
+            if output_dir:
+                print(f"   Output directory: {output_dir}")
+            print()
+            result = package_skill(
+                skill_path,
+                output_dir,
+                extension=config["extension"],
+                archive_name=f"{skill_path.name}{config['extension']}",
+            )
+            results.append(result is not None)
     else:
-        sys.exit(1)
+        if not args.skill_path:
+            parser.error("either skill_path or --target is required")
+        print(f"Packaging skill: {args.skill_path}")
+        if output_dir:
+            print(f"   Output directory: {output_dir}")
+        print()
+        result = package_skill(args.skill_path, output_dir)
+        results.append(result is not None)
+
+    sys.exit(0 if all(results) else 1)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "project_id": "project_demo",
+  "updated_at": "2026-03-22T12:05:00Z",
+  "memory_scope": "project_demo",
+  "project_memory_id": "project_demo",
+  "current_problem_classes": ["python_api_optimisation"],
+  "recent_run_ids": ["run_demo_1"],
+  "pending_disposition_update_ids": ["upd_demo_reinforce"],
+  "compact_state": "Return-type-first remains the dominant typing prior.",
+  "last_pack_export_at": "2026-03-22T12:05:00Z",
+  "last_pack_import_at": null
+}

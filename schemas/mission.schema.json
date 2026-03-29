@@ -6,9 +6,25 @@
   "type": "object",
   "required": ["run_id", "budget"],
   "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version for this mission artifact"
+    },
     "run_id": {
       "type": "string",
       "description": "Unique run identifier"
+    },
+    "problem_class": {
+      "type": "string",
+      "description": "Canonical problem class used to key dispositions and episodic retrieval"
+    },
+    "anticipated_action_intents": {
+      "type": "array",
+      "description": "Action intents expected during the run and used for prior retrieval",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
     },
     "goal": {
       "type": "string",
@@ -17,6 +33,19 @@
     "artifact": {
       "type": "string",
       "description": "What is being mutated and where it lives"
+    },
+    "memory_mode": {
+      "type": "string",
+      "enum": ["direct_backend", "connector_backed", "project_pack", "none"],
+      "description": "Long-term memory surface used for the run"
+    },
+    "memory_scope": {
+      "type": ["string", "null"],
+      "description": "Logical scope for memory isolation, such as a project or workspace identifier"
+    },
+    "project_memory_id": {
+      "type": ["string", "null"],
+      "description": "Project-scoped identifier used by connector-backed or project-pack memory"
     },
     "plays_enabled": {
       "type": "boolean",
@@ -71,6 +100,11 @@
     "created_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Run start timestamp retained for backwards compatibility with existing mission artifacts"
     }
   }
 }

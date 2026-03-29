@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/project-state.schema.json",
+  "title": "a* project state",
+  "description": "Compact project-scoped state used by connector-backed and project-pack memory surfaces.",
+  "type": "object",
+  "required": ["schema_version", "project_id", "updated_at"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "memory_scope": {
+      "type": ["string", "null"]
+    },
+    "project_memory_id": {
+      "type": ["string", "null"]
+    },
+    "current_problem_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recent_run_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pending_disposition_update_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "compact_state": {
+      "type": ["string", "null"]
+    },
+    "last_pack_export_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "last_pack_import_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    }
+  }
+}

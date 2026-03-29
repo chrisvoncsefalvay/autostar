@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/run-summary.schema.json",
+  "title": "a* run summary",
+  "description": "Completed-run summary stored in long-term memory and exported to project packs.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "project_id",
+    "problem_class",
+    "artifact_description",
+    "completed_at",
+    "baseline_scores",
+    "final_scores",
+    "rounds_completed",
+    "what_worked",
+    "what_failed",
+    "disposition_updates_proposed",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "problem_class": {
+      "type": "string"
+    },
+    "artifact_description": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "baseline_scores": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "final_scores": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "rounds_completed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "memory_mode": {
+      "type": "string",
+      "enum": ["direct_backend", "connector_backed", "project_pack", "none"]
+    },
+    "pivots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "what_worked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "what_failed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disposition_updates_proposed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["run_completion", "imported_project_pack", "connector_sync"]
+        },
+        "detail": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

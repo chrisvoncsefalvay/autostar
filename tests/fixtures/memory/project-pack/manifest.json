@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "pack_id": "pack-demo",
+  "project_id": "project_demo",
+  "generated_at": "2026-03-22T12:05:00Z",
+  "manual_sync_required": true,
+  "source_of_truth": "sqlite3",
+  "source_backend": {
+    "path": "/tmp/autostar-memory.sqlite3"
+  },
+  "files": [
+    {
+      "path": "manifest.json",
+      "kind": "manifest",
+      "format": "json",
+      "description": "Pack manifest"
+    },
+    {
+      "path": "dispositions.json",
+      "kind": "dispositions",
+      "format": "json",
+      "description": "Disposition snapshot"
+    },
+    {
+      "path": "episodes.jsonl",
+      "kind": "episodes",
+      "format": "jsonl",
+      "description": "Episode log"
+    },
+    {
+      "path": "run-summaries.jsonl",
+      "kind": "run_summaries",
+      "format": "jsonl",
+      "description": "Run summaries"
+    },
+    {
+      "path": "project-state.json",
+      "kind": "project_state",
+      "format": "json",
+      "description": "Project state"
+    },
+    {
+      "path": "latest-relevant-priors.json",
+      "kind": "latest_relevant_priors",
+      "format": "json",
+      "description": "Prior cache"
+    },
+    {
+      "path": "pending-disposition-updates.json",
+      "kind": "pending_updates",
+      "format": "json",
+      "description": "Pending updates"
+    }
+  ]
+}

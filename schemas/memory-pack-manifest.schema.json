@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/memory-pack-manifest.schema.json",
+  "title": "a* project memory pack manifest",
+  "description": "Manifest describing an exported project-pack view of the canonical memory backend.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "pack_id",
+    "project_id",
+    "generated_at",
+    "manual_sync_required",
+    "source_of_truth",
+    "files"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "pack_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "manual_sync_required": {
+      "type": "boolean"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "enum": ["sqlite3"]
+    },
+    "source_backend": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind", "format"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "manifest",
+              "dispositions",
+              "episodes",
+              "run_summaries",
+              "project_state",
+              "latest_relevant_priors",
+              "pending_updates"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": ["json", "jsonl", "txt", "html"]
+          },
+          "description": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    }
+  }
+}

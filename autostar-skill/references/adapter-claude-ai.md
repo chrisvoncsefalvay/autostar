@@ -33,6 +33,25 @@ Operational consequences:
 - file-backed logs may need to be represented as canonical in-chat artifacts
 - inline visual outputs should be shown in-chat rather than via external browser hops
 
+Memory consequences:
+- the checked-in base profile remains conservative and does not claim long-term memory
+- the effective session may gain long-term memory only through a real connector or a valid project pack
+- Claude's own built-in memory remains advisory only and must not become the system of record
+
+## Memory access modes
+
+Claude.ai should use explicit memory modes:
+
+1. `connector_backed`
+   Preferred. A remote memory connector is configured and reachable.
+2. `project_pack`
+   Fallback. No connector, but project knowledge contains a valid exported memory pack.
+3. `none`
+   Final fallback. The run uses short-term memory only and says so plainly.
+
+`direct_backend` exists in the global runtime contract but should not be
+assumed for the base Claude.ai host profile.
+
 ---
 
 ## Phase 0: Runtime announcement
@@ -141,6 +160,7 @@ If a track originally wants `external_tool` or subprocess-backed `hybrid`:
 - explain the limitation
 - propose an `llm_judge` replacement only if the user approves
 - record the downgrade in the mission artifact and final report
+- never make the downgrade silently
 
 Recommended wording:
 
@@ -156,12 +176,20 @@ Claude.ai adapter behavior:
 
 - Tool availability checks: skip, because subprocess is unavailable
 - Baseline run: still required
-- Disposition lookup: optional; only if the host has a memory layer
+- Disposition lookup: optional; only if the effective profile reports a real memory surface
 - Mission confirmation: still required, with the full canonical artifacts shown
 
 Add this note to the mission summary when relevant:
 
 > "Runtime downgrade: subprocess-backed verification disabled."
+
+Add one memory note too:
+
+> "Memory mode: connector_backed. Cross-run learning is active through the configured connector."
+
+> "Memory mode: project_pack. Cross-run learning is available with reduced fidelity; manual sync is required after the run."
+
+> "Memory mode: none. Long-term memory is unavailable in this session, so a* is running with short-term memory only."
 
 ---
 
@@ -242,6 +270,8 @@ Tracks affected:
 ```
 
 If no downgrades were used, state that explicitly.
+If project-pack mode was used, also say that updated pack files need manual
+sync back into project knowledge or GitHub.
 
 ---
 

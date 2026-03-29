@@ -11,9 +11,11 @@ from pathlib import Path
 
 try:
     from scripts.runtime_profile import validate_profiles
+    from scripts.schema_tools import validate_schema_bundle
 except ModuleNotFoundError:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from runtime_profile import validate_profiles
+    from schema_tools import validate_schema_bundle
 
 def validate_skill(skill_path):
     """Basic validation of a skill"""
@@ -113,6 +115,10 @@ def validate_skill(skill_path):
     profiles_ok, profile_errors = validate_profiles(skill_path)
     if not profiles_ok:
         return False, f"Runtime profile validation failed: {'; '.join(profile_errors)}"
+
+    schema_errors = validate_schema_bundle()
+    if schema_errors:
+        return False, f"Schema validation failed: {'; '.join(schema_errors)}"
 
     return True, "Skill is valid!"
 

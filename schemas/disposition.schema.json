@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/disposition.schema.json",
+  "title": "a* disposition record",
+  "description": "One versioned long-term disposition keyed by problem class and action intent.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "disposition_id",
+    "project_id",
+    "problem_class",
+    "action_intent",
+    "version",
+    "status",
+    "prior",
+    "confidence",
+    "n_supporting",
+    "n_refuting",
+    "exemplars_supporting",
+    "exemplars_refuting",
+    "provenance",
+    "last_updated",
+    "policy_version_at_creation"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "disposition_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "problem_class": {
+      "type": "string"
+    },
+    "action_intent": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "retired"]
+    },
+    "prior": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "n_supporting": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "n_refuting": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exemplars_supporting": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "exemplars_refuting": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "provenance": {
+      "type": "string",
+      "enum": [
+        "learned_from_run",
+        "looked_up_from_web",
+        "user_specified",
+        "imported_project_pack"
+      ]
+    },
+    "source": {
+      "type": ["string", "null"]
+    },
+    "override_conditions": {
+      "type": ["string", "null"]
+    },
+    "created_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "policy_version_at_creation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "evidence_summary": {
+      "type": ["string", "null"]
+    }
+  }
+}

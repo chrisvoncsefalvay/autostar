@@ -17,10 +17,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install pyyaml
+        run: pip install pyyaml jsonschema pytest
 
-      - name: Validate SKILL.md structure
+      - name: Validate Claude Code skill
         run: python autostar-skill/scripts/quick_validate.py autostar-skill/
+
+      - name: Validate Claude.ai skill
+        run: python autostar-skill/scripts/quick_validate.py autostar-claude-ai-skill/
 
       - name: Validate runtime profiles
         run: python autostar-skill/scripts/runtime_profile.py validate
@@ -49,3 +52,6 @@ jobs:
             exit 1
           fi
           echo "No stale references found."
+
+      - name: Run tests
+        run: pytest -q

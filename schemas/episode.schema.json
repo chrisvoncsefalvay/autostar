@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/episode.schema.json",
+  "title": "a* episodic memory record",
+  "description": "Append-only round reflection record stored in the episodic memory stream.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "episode_id",
+    "project_id",
+    "run_id",
+    "round_id",
+    "problem_class",
+    "recorded_at",
+    "reflection",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "round_id": {
+      "type": "string"
+    },
+    "problem_class": {
+      "type": "string"
+    },
+    "action_intents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifact_description": {
+      "type": ["string", "null"]
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reflection": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["round_reflection", "imported_project_pack", "connector_sync"]
+        },
+        "detail": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

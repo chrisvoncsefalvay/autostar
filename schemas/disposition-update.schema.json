@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/disposition-update.schema.json",
+  "title": "a* disposition update proposal",
+  "description": "Queued disposition change generated from run evidence and gated for approval.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "update_id",
+    "project_id",
+    "run_id",
+    "problem_class",
+    "action_intent",
+    "proposal_type",
+    "status",
+    "created_at",
+    "requires_approval",
+    "rationale"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "update_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "problem_class": {
+      "type": "string"
+    },
+    "action_intent": {
+      "type": "string"
+    },
+    "disposition_id": {
+      "type": ["string", "null"]
+    },
+    "proposal_type": {
+      "type": "string",
+      "enum": ["reinforce", "weaken", "extend", "fork", "create", "retire"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "applied"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "requires_approval": {
+      "type": "boolean"
+    },
+    "confidence_delta": {
+      "type": "number"
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "source_exemplars": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "refuting_exemplars": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "target_version": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "approved_by": {
+      "type": ["string", "null"]
+    },
+    "proposed_record": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    }
+  }
+}

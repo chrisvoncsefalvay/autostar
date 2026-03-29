@@ -6,10 +6,34 @@
   "type": "object",
   "required": ["id", "track_scores", "composite", "constraints", "cost", "outcome"],
   "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version for this step record"
+    },
     "id": {
       "type": "string",
       "pattern": "^.+_r\\d+_l\\d+_s\\d+$",
       "description": "Step ID in format {run}_{round}_{lap}_{step}"
+    },
+    "step_kind": {
+      "type": "string",
+      "enum": ["baseline", "mutation", "meta_research", "memory_update"],
+      "description": "Broad class of step for downstream memory and reporting consumers"
+    },
+    "action_intent": {
+      "type": "string",
+      "description": "Action intent this step attempted to execute"
+    },
+    "hypothesis": {
+      "type": "string",
+      "description": "Natural-language hypothesis motivating this step"
+    },
+    "source_dispositions": {
+      "type": "array",
+      "description": "Disposition priors that conditioned this step",
+      "items": {
+        "$ref": "#/$defs/source_disposition"
+      }
     },
     "parameters": {
       "type": "object",
@@ -54,7 +78,7 @@
     },
     "outcome": {
       "type": "string",
-      "enum": ["keep", "revert", "partial_keep", "rejected_constraint"],
+      "enum": ["baseline", "keep", "revert", "partial_keep", "rejected_constraint"],
       "description": "Ratchet decision for this step"
     },
     "rejections": {
@@ -71,6 +95,36 @@
           "strategy": { "type": "string", "enum": ["context_framing", "clinical_distancing", "scope_narrowing", "user_escalation"] },
           "resolved": { "type": "boolean" },
           "overhead_tokens": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source_disposition": {
+      "type": "object",
+      "required": ["disposition_id", "problem_class", "action_intent", "version"],
+      "properties": {
+        "disposition_id": {
+          "type": "string"
+        },
+        "problem_class": {
+          "type": "string"
+        },
+        "action_intent": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "influence": {
+          "type": "string",
+          "enum": ["primary", "secondary", "contextual"]
+        },
+        "retrieval_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       }
     }

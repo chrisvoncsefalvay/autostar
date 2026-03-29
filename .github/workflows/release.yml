@@ -19,28 +19,38 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install pyyaml
+        run: pip install pyyaml jsonschema pytest
 
-      - name: Validate skill
+      - name: Validate Claude Code skill
         run: python autostar-skill/scripts/quick_validate.py autostar-skill/
 
-      - name: Package skill
+      - name: Validate Claude.ai skill
+        run: python autostar-skill/scripts/quick_validate.py autostar-claude-ai-skill/
+
+      - name: Run tests
+        run: pytest -q
+
+      - name: Package skills
         run: |
           mkdir -p dist
-          python autostar-skill/scripts/package_skill.py autostar-skill/ dist/
+          python autostar-skill/scripts/package_skill.py --target all dist/
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/autostar-skill.skill
+          files: |
+            dist/autostar-skill.skill
+            dist/autostar-claude-ai-skill.zip
           generate_release_notes: true
           body: |
             ## Installation
 
-            Download `autostar-skill.skill` and unzip into your skills directory:
+            Claude Code:
 
             ```bash
             unzip autostar-skill.skill -d ~/.claude/skills/
             ```
 
-            Or clone the repo and copy `autostar-skill/` directly.
+            Claude.ai:
+
+            Upload `autostar-claude-ai-skill.zip` as a custom Skill.

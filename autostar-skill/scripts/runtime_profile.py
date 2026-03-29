@@ -7,9 +7,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from urllib import error, request
+
+try:
+    from memory_backend import MemoryBackend, MemoryProbeResult, SHORT_TERM_ONLY_MESSAGE
+    from schema_tools import validate_instance, validate_schema_bundle
+except ModuleNotFoundError:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from memory_backend import MemoryBackend, MemoryProbeResult, SHORT_TERM_ONLY_MESSAGE
+    from schema_tools import validate_instance, validate_schema_bundle
 
 
 STRUCTURED_CHOICE_ORDER = {"none": 0, "basic": 1, "full": 2}
@@ -73,6 +83,10 @@ def repo_root(skill_dir: Path) -> Path:
 
 def schema_path(skill_dir: Path) -> Path:
     return repo_root(skill_dir) / "schemas" / "runtime-profile.schema.json"
+
+
+def default_memory_db(skill_dir: Path) -> Path:
+    return repo_root(skill_dir) / "memory" / "autostar-memory.sqlite3"
 
 
 def validate_profile_shape(profile: RuntimeProfile) -> list[str]:
@@ -188,6 +202,7 @@ def validate_profiles(skill_dir: Path) -> tuple[bool, list[str]]:
     schema = schema_path(skill_dir)
     if not schema.exists():
         errors.append(f"Missing runtime profile schema: {schema}")
+    errors.extend(validate_schema_bundle())
 
     profiles_dir = skill_dir / "runtime-profiles"
     if not profiles_dir.exists():
@@ -271,6 +286,172 @@ def render_summary(profile: RuntimeProfile) -> str:
     return "\n".join(lines)
 
 
+def connector_probe(url: str, token: str | None = None) -> MemoryProbeResult:
+    endpoint = url.rstrip("/") + "/health"
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    try:
+        response = request.urlopen(request.Request(endpoint, headers=headers), timeout=3)
+        payload = json.loads(response.read().decode("utf-8"))
+        if payload.get("ok"):
+            return MemoryProbeResult(
+                mode="connector_backed",
+                available=True,
+                reason="remote memory connector is reachable",
+                connector_url=url,
+            )
+    except (error.URLError, json.JSONDecodeError, TimeoutError) as exc:
+        return MemoryProbeResult(
+            mode="none",
+            available=False,
+            reason=f"memory connector unavailable: {exc}",
+            connector_url=url,
+        )
+    return MemoryProbeResult(
+        mode="none",
+        available=False,
+        reason="memory connector healthcheck did not report ok",
+        connector_url=url,
+    )
+
+
+def project_pack_probe(path: Path, project_memory_id: str | None = None) -> MemoryProbeResult:
+    manifest_path = path / "manifest.json"
+    if not manifest_path.exists():
+        return MemoryProbeResult(
+            mode="none",
+            available=False,
+            reason=f"project pack missing manifest at {manifest_path}",
+            project_pack=str(path),
+            project_memory_id=project_memory_id,
+        )
+    try:
+        manifest = json.loads(manifest_path.read_text())
+        validate_instance(manifest, "memory-pack-manifest")
+    except Exception as exc:
+        return MemoryProbeResult(
+            mode="none",
+            available=False,
+            reason=f"project pack invalid: {exc}",
+            project_pack=str(path),
+            project_memory_id=project_memory_id,
+        )
+    return MemoryProbeResult(
+        mode="project_pack",
+        available=True,
+        reason="valid project memory pack is available",
+        manual_sync_required=True,
+        project_pack=str(path),
+        project_memory_id=project_memory_id or manifest.get("project_id"),
+    )
+
+
+def probe_memory_surface(profile: RuntimeProfile, skill_dir: Path, args: argparse.Namespace) -> MemoryProbeResult:
+    if profile.capabilities["file_read_write"] == "full":
+        backend_path = Path(getattr(args, "memory_db", None) or os.environ.get("AUTOSTAR_MEMORY_DB", default_memory_db(skill_dir)))
+        direct = MemoryBackend.probe_local_backend(backend_path)
+        if direct.available:
+            return direct
+
+    connector_url = getattr(args, "memory_connector_url", None) or os.environ.get("AUTOSTAR_MEMORY_CONNECTOR_URL")
+    connector_token = getattr(args, "memory_connector_token", None) or os.environ.get("AUTOSTAR_MEMORY_CONNECTOR_TOKEN")
+    if connector_url:
+        connector = connector_probe(connector_url, connector_token)
+        if connector.available:
+            return connector
+
+    project_pack_value = getattr(args, "project_pack", None) or os.environ.get("AUTOSTAR_PROJECT_MEMORY_PACK")
+    project_memory_id = getattr(args, "project_memory_id", None) or os.environ.get("AUTOSTAR_PROJECT_MEMORY_ID")
+    if project_pack_value:
+        pack_probe = project_pack_probe(Path(project_pack_value), project_memory_id)
+        if pack_probe.available:
+            return pack_probe
+
+    return MemoryProbeResult(mode="none", available=False, reason=SHORT_TERM_ONLY_MESSAGE)
+
+
+def effective_profile(profile: RuntimeProfile, probe: MemoryProbeResult) -> dict:
+    data = json.loads(json.dumps(profile.data))
+    if probe.mode == "direct_backend":
+        data["capabilities"]["long_term_memory"] = True
+        data["native_mappings"]["memory_lookup"] = "scripts/memory_cli.py lookup-priors"
+        data["native_mappings"]["memory_store"] = "scripts/memory_cli.py append-episode|write-run-summary|apply-approved-updates"
+    elif probe.mode == "connector_backed":
+        data["capabilities"]["long_term_memory"] = True
+        data["native_mappings"]["memory_lookup"] = "remote MCP memory connector: lookup_priors"
+        data["native_mappings"]["memory_store"] = "remote MCP memory connector tools"
+    elif probe.mode == "project_pack":
+        data["capabilities"]["long_term_memory"] = True
+        data["native_mappings"]["memory_lookup"] = "project knowledge memory pack files"
+        data["native_mappings"]["memory_store"] = "manual project-pack artifact export"
+        data["downgrades"].append(
+            {
+                "capability": "long_term_memory",
+                "effect": "project-pack mode requires manual sync of exported pack files back into project knowledge or GitHub"
+            }
+        )
+        data["downgrades"].append(
+            {
+                "capability": "long_term_memory",
+                "effect": "project-pack retrieval is reduced fidelity compared with direct backend or connector-backed sessions"
+            }
+        )
+    else:
+        data["capabilities"]["long_term_memory"] = False
+        data["native_mappings"]["memory_lookup"] = None
+        data["native_mappings"]["memory_store"] = None
+        if not any(item["capability"] == "long_term_memory" for item in data["downgrades"]):
+            data["downgrades"].append({"capability": "long_term_memory", "effect": SHORT_TERM_ONLY_MESSAGE})
+    return data
+
+
+def resolve_profile(profile: RuntimeProfile, skill_dir: Path, args: argparse.Namespace) -> dict:
+    probe = probe_memory_surface(profile, skill_dir, args)
+    return {
+        "base_profile": profile.data,
+        "effective_profile": effective_profile(profile, probe),
+        "memory_surface": {
+            "mode": probe.mode,
+            "available": probe.available,
+            "reason": probe.reason,
+            "manual_sync_required": probe.manual_sync_required,
+            "backend_path": probe.backend_path,
+            "connector_url": probe.connector_url,
+            "project_pack": probe.project_pack,
+            "project_memory_id": probe.project_memory_id,
+        },
+    }
+
+
+def render_resolved_summary(profile: RuntimeProfile, resolution: dict) -> str:
+    effective = RuntimeProfile(path=profile.path, data=resolution["effective_profile"])
+    surface = resolution["memory_surface"]
+    lines = [
+        "base_profile:",
+        render_summary(profile),
+        "",
+        "effective_profile:",
+        render_summary(effective),
+        "",
+        "memory_surface:",
+        f"  mode: {surface['mode']}",
+        f"  available: {str(surface['available']).lower()}",
+        f"  reason: {surface['reason']}",
+    ]
+    if surface["manual_sync_required"]:
+        lines.append("  manual_sync_required: true")
+    if surface["backend_path"]:
+        lines.append(f"  backend_path: {surface['backend_path']}")
+    if surface["connector_url"]:
+        lines.append(f"  connector_url: {surface['connector_url']}")
+    if surface["project_pack"]:
+        lines.append(f"  project_pack: {surface['project_pack']}")
+    if surface["project_memory_id"]:
+        lines.append(f"  project_memory_id: {surface['project_memory_id']}")
+    return "\n".join(lines)
+
+
 def summarize_requirements(args: argparse.Namespace) -> tuple[list[str], list[str]]:
     requirements: list[str] = []
     blockers: list[str] = []
@@ -342,9 +523,25 @@ def build_parser() -> argparse.ArgumentParser:
 
     show = subparsers.add_parser("show", help="Show one runtime profile")
     show.add_argument("runtime", help="Runtime profile name or stem")
+    show.add_argument("--effective", action="store_true", help="Probe memory surfaces and show the effective profile")
+    show.add_argument("--json", action="store_true", help="Emit JSON when showing an effective profile")
+    show.add_argument("--memory-db", help="Path to the canonical local memory database")
+    show.add_argument("--memory-connector-url", help="Remote memory connector URL")
+    show.add_argument("--memory-connector-token", help="Remote memory connector bearer token")
+    show.add_argument("--project-pack", help="Path to a project memory pack")
+    show.add_argument("--project-memory-id", help="Project-scoped memory identifier")
 
     validate = subparsers.add_parser("validate", help="Validate runtime profiles and adapter references")
     validate.add_argument("--quiet", action="store_true", help="Only emit validation failures")
+
+    resolve = subparsers.add_parser("resolve", help="Emit base and effective runtime profiles after probing memory surfaces")
+    resolve.add_argument("runtime", help="Runtime profile name or stem")
+    resolve.add_argument("--json", action="store_true", help="Emit JSON instead of the textual summary")
+    resolve.add_argument("--memory-db", help="Path to the canonical local memory database")
+    resolve.add_argument("--memory-connector-url", help="Remote memory connector URL")
+    resolve.add_argument("--memory-connector-token", help="Remote memory connector bearer token")
+    resolve.add_argument("--project-pack", help="Path to a project memory pack")
+    resolve.add_argument("--project-memory-id", help="Project-scoped memory identifier")
 
     select = subparsers.add_parser("select", help="Select the best runtime for a capability set")
     select.add_argument("--support-level", choices=["full", "reduced", "unsupported"])
@@ -362,6 +559,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Check whether a specific runtime can support the current mission requirements",
     )
     check.add_argument("runtime", help="Runtime profile name or stem")
+    check.add_argument("--effective", action="store_true", help="Probe memory surfaces before checking mission compatibility")
+    check.add_argument("--memory-db", help="Path to the canonical local memory database")
+    check.add_argument("--memory-connector-url", help="Remote memory connector URL")
+    check.add_argument("--memory-connector-token", help="Remote memory connector bearer token")
+    check.add_argument("--project-pack", help="Path to a project memory pack")
+    check.add_argument("--project-memory-id", help="Project-scoped memory identifier")
     check.add_argument("--require-structured-choice", choices=["basic", "full"], default="basic")
     check.add_argument("--require-file-read-write", choices=["limited", "full"], default="full")
     check.add_argument("--require-subprocess", action="store_true")
@@ -408,7 +611,27 @@ def main() -> int:
         except ValueError as exc:
             print(exc, file=sys.stderr)
             return 1
+        if args.effective:
+            resolution = resolve_profile(profile, skill_dir, args)
+            if args.json:
+                print(json.dumps(resolution, indent=2))
+            else:
+                print(render_resolved_summary(profile, resolution))
+            return 0
         print(render_summary(profile))
+        return 0
+
+    if args.command == "resolve":
+        try:
+            profile = match_profile(profiles, args.runtime)
+        except ValueError as exc:
+            print(exc, file=sys.stderr)
+            return 1
+        resolution = resolve_profile(profile, skill_dir, args)
+        if args.json:
+            print(json.dumps(resolution, indent=2))
+        else:
+            print(render_resolved_summary(profile, resolution))
         return 0
 
     if args.command == "select":
@@ -435,6 +658,11 @@ def main() -> int:
         except ValueError as exc:
             print(exc, file=sys.stderr)
             return 1
+        if args.effective:
+            resolution = resolve_profile(profile, skill_dir, args)
+            profile = RuntimeProfile(path=profile.path, data=resolution["effective_profile"])
+        else:
+            resolution = None
 
         base_args = argparse.Namespace(
             require_structured_choice=args.require_structured_choice,
@@ -460,6 +688,8 @@ def main() -> int:
         if issues:
             print(f"runtime: {profile.runtime_name}")
             print(f"profile: {profile.stem}")
+            if resolution:
+                print(f"memory_mode: {resolution['memory_surface']['mode']}")
             print("mission_compatible: false")
             print("requirements:")
             for requirement in requirements:
@@ -471,6 +701,8 @@ def main() -> int:
 
         print(f"runtime: {profile.runtime_name}")
         print(f"profile: {profile.stem}")
+        if resolution:
+            print(f"memory_mode: {resolution['memory_surface']['mode']}")
         print("mission_compatible: true")
         print("requirements:")
         for requirement in requirements:

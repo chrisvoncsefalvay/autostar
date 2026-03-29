@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/momentum.schema.json",
+  "title": "a* momentum snapshot",
+  "description": "Derived snapshot of score momentum inferred from append-only step logs.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "updated_at",
+    "window",
+    "composite_slope",
+    "composite_acceleration",
+    "per_track",
+    "signal"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": ["string", "null"]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "window": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "composite_slope": {
+      "type": "number"
+    },
+    "composite_acceleration": {
+      "type": "number"
+    },
+    "per_track": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["slope", "plateau"],
+        "properties": {
+          "slope": {
+            "type": "number"
+          },
+          "plateau": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "signal": {
+      "type": "string",
+      "enum": ["exploiting_successfully", "plateau", "diverging", "recovering"]
+    }
+  }
+}

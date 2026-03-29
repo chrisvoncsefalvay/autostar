@@ -78,15 +78,33 @@ A built-in **visualiser** renders live progress as an inline HTML dashboard.
 
 ### 4. Memory and learning
 
-Three memory stores:
+The canonical source of truth is one local persistent backend for the whole
+system. Short-term run logs stay append-only inside a run, while long-term
+memory is stored in that backend and exported as human-readable JSON/JSONL
+mirrors.
 
-| Store | Scope | Purpose |
-|---|---|---|
-| **Short-term** | Within run | Step log, hypothesis stack, score trajectories, momentum |
-| **Episodic** | Across runs | Round reflections verbatim; run summaries |
-| **Dispositions** | Across runs | Learned priors keyed on (problem class, action intent) |
+Within a run:
+- `step_log.jsonl` and `reflections.jsonl` are append-only sources of truth
+- `hypothesis_stack.json`, `track_trajectories.json`, and `momentum.json` are derived snapshots
+- if a derived file disagrees with a log, the log wins
 
-Dispositions are the long-term knowledge base. They shape future actions based on what worked and what didn't.
+Across runs:
+- episodes and run summaries are persisted in the backend and mirrored to JSONL
+- dispositions are versioned in the backend and mirrored to JSON
+- Claude.ai fallback sessions use a text-first project memory pack exported from the backend
+
+Memory access modes:
+
+| Mode | Meaning |
+|---|---|
+| `direct_backend` | Runtime can use the canonical local backend directly |
+| `connector_backed` | Runtime reaches memory through a connector |
+| `project_pack` | Runtime uses a text-first project pack with manual sync |
+| `none` | Short-term memory only |
+
+Dispositions are the long-term knowledge base. They shape future actions based
+on what worked and what didn't. Claude's built-in memory is useful for chat
+continuity, but it is not the system of record for a* learning.
 
 ### 5. Post-run report
 
@@ -141,7 +159,7 @@ a\* writes structured, machine-readable output for external tools:
 ### Prerequisites
 
 - Claude Code (for the native install path below)
-- Python 3 + `pyyaml` (for validation/packaging scripts)
+- Python 3 + `pyyaml` + `jsonschema` (for validation/packaging scripts)
 - `unzip` (if installing from a release archive)
 
 ### Claude Code
@@ -170,6 +188,21 @@ curl -sL https://github.com/chrisvoncsefalvay/autostar/releases/latest/download/
 unzip autostar.skill -d ~/.claude/skills/
 ```
 
+### Claude.ai custom Skills
+
+Build the Claude.ai upload archive:
+
+```bash
+python autostar-skill/scripts/package_skill.py --target claude-ai dist/
+```
+
+Upload `dist/autostar-claude-ai-skill.zip` to Claude.ai as a custom Skill.
+
+For long-term memory in Claude.ai:
+- preferred: configure the remote memory connector and enable it per conversation
+- fallback: add a project memory pack to project knowledge and manually sync updated pack files after runs
+- if neither exists, a* reports short-term-only mode explicitly
+
 ### Other agents
 
 The `.skill` format is a ZIP archive with `SKILL.md` and supporting files. Other agent frameworks can use it through a runtime adapter — see `autostar-skill/references/runtime-capabilities.md`. Without that layer, treat compatibility as partial.
@@ -182,12 +215,13 @@ Inspect or select profiles with:
 python autostar-skill/scripts/runtime_profile.py list
 python autostar-skill/scripts/runtime_profile.py show claude-code
 python autostar-skill/scripts/runtime_profile.py check-mission claude-code --verifier external_tool --verifier llm_judge
+python autostar-skill/scripts/runtime_profile.py resolve claude-ai --project-pack ./memory-pack
 ```
 
 ### Validation
 
 ```bash
-python -m pip install pyyaml
+python -m pip install pyyaml jsonschema pytest
 python autostar-skill/scripts/quick_validate.py autostar-skill/
 ```
 
@@ -255,8 +289,9 @@ These are hard constraints enforced by the skill's structure, not suggestions.
 ## Building and packaging
 
 ```bash
-python -m pip install pyyaml
+python -m pip install pyyaml jsonschema pytest
 python autostar-skill/scripts/package_skill.py autostar-skill/ dist/
+python autostar-skill/scripts/package_skill.py --target all dist/
 ```
 
 Validates the skill and produces `dist/autostar-skill.skill`.

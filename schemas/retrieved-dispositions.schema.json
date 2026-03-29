@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/retrieved-dispositions.schema.json",
+  "title": "a* retrieved dispositions snapshot",
+  "description": "Run-scoped record of priors retrieved for anticipated action intents.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "project_id",
+    "problem_class",
+    "retrieved_at",
+    "anticipated_action_intents",
+    "items_by_action_intent"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "problem_class": {
+      "type": "string"
+    },
+    "memory_mode": {
+      "type": "string",
+      "enum": ["direct_backend", "connector_backed", "project_pack", "none"]
+    },
+    "retrieved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "anticipated_action_intents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "items_by_action_intent": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "disposition_id",
+            "problem_class",
+            "action_intent",
+            "version",
+            "retrieval_score",
+            "semantic_similarity",
+            "confidence",
+            "prior"
+          ],
+          "properties": {
+            "disposition_id": {
+              "type": "string"
+            },
+            "problem_class": {
+              "type": "string"
+            },
+            "action_intent": {
+              "type": "string"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "retrieval_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "semantic_similarity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "exact_match_boost": {
+              "type": "number",
+              "minimum": 0
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "prior": {
+              "type": "string"
+            },
+            "override_conditions": {
+              "type": ["string", "null"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

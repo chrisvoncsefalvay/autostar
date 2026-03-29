@@ -56,6 +56,9 @@ capabilities:
 ```
 
 At run start, detect this profile and adapt the workflow before onboarding.
+Keep the checked-in base profile conservative. If the current session can probe
+an actual memory surface, emit an effective profile alongside the base profile
+instead of pretending the base profile changed.
 
 ---
 
@@ -147,6 +150,7 @@ Fallback:
 - If absent, external-tool tracks must be rejected or replaced during
   onboarding. Mark the replacement as lower-confidence in the run report.
 - The visualiser must be replaced by text progress plus `progress.json`.
+- Never silently convert an `external_tool` verifier into an `llm_judge`.
 
 ### 6. `pause_resume`
 
@@ -183,10 +187,19 @@ Used for episodic memory and dispositions across runs.
 Contract:
 - Store and retrieve prior reflections and disposition records keyed by problem
   class and action intent.
+- Only advertise long-term memory when a real surface exists for this session.
+
+Memory access modes:
+- `direct_backend` — runtime can reach the canonical local backend directly
+- `connector_backed` — runtime uses a connector tool surface
+- `project_pack` — runtime reads and writes a text-first project pack with manual sync
+- `none` — no long-term memory surface is available
 
 Fallback:
 - If absent, run with short-term memory only and report that cross-run learning
   is disabled.
+- Do not treat host-native memory synthesis as the system of record for
+  dispositions, episodes, approvals, or run summaries.
 
 ---
 

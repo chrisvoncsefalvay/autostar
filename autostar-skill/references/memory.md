@@ -4,22 +4,36 @@
 
 ## Architecture overview
 
-Three stores. One ephemeral, two persistent.
+One canonical persistent backend. One run-scoped append-only store. Human-readable
+JSON and JSONL files are exported mirrors or project-pack views, not the primary
+database.
 
 ```
-SHORT-TERM (run-scoped, in-context)
+CANONICAL LONG-TERM BACKEND (persistent, source of truth)
+  SQLite-backed store
+    episodes                — append-only episodic memory
+    run_summaries           — one summary per completed run
+    dispositions            — current disposition records
+    disposition_versions    — auditable version history
+    disposition_updates     — pending/applied proposals
+    project_state           — compact project-scoped state
+
+EXPORTED MIRRORS / PROJECT PACKS (derived from backend)
+  dispositions.json
+  episodes.jsonl
+  run-summaries.jsonl
+  project-state.json
+  latest-relevant-priors.json
+
+SHORT-TERM (run-scoped, append-only where stated)
   step_log.jsonl          — append-only; every step record
+  reflections.jsonl       — append-only; every round reflection
   hypothesis_stack.json   — current queue with provenance
   track_trajectories.json — per-track score history
   momentum.json           — slope and acceleration of composite score
-
-LONG-TERM: EPISODIC (persistent, append-only)
-  episodes.jsonl          — every round reflection, verbatim
-  run_summaries.jsonl     — post-run summary per completed run
-
-LONG-TERM: DISPOSITION LIBRARY (persistent, mutable with versioning)
-  dispositions.json       — keyed on (problem_class, action_intent)
 ```
+
+If a derived snapshot and an append-only run log disagree, the append-only log wins.
 
 ---
 
@@ -81,14 +95,17 @@ The `signal` field feeds the round reflection's worth-pursuing assessment.
 
 ## Long-term episodic store
 
-`episodes.jsonl` — never deleted; append-only across all runs.
+`episodes.jsonl` is the exported mirror of the canonical episodic store. The
+SQLite backend is the source of truth; the mirror exists for inspection,
+packaging, and Claude.ai project-pack workflows.
 
 Each entry is a round reflection record (verbatim from the round reflection
 output, plus run metadata). This store is the raw historical record.
 It is queried at run start to retrieve relevant prior round reflections
 for similar problem classes.
 
-`run_summaries.jsonl` — one entry per completed run:
+`run_summaries.jsonl` is the exported mirror of the canonical run-summary table.
+One entry per completed run:
 ```json
 {
   "run_id": "run_20260324",
@@ -136,10 +153,11 @@ for similar problem classes.
 ### Keying and retrieval
 
 Dispositions are keyed on `(problem_class, action_intent)` but retrieved
-by **semantic similarity**, not exact match. At run start:
+by **semantic similarity with exact-key boosts**, not exact match alone. At run start:
 
-1. Embed the run's problem description and each action class anticipated
-2. Query the disposition library with cosine similarity
+1. Build a deterministic hashed word-and-character n-gram vector from the run's problem description, goal, artifact description, and each anticipated action intent
+2. Query the disposition library with cosine similarity over those vectors
+3. Boost exact matches on `problem_class` and `action_intent`
 3. Return top-3 dispositions per action class with confidence ≥ 0.4
 4. Inject retrieved dispositions into the orchestrator's context as:
    > "Based on prior experience with similar problems, when attempting
@@ -151,9 +169,9 @@ meta-research.
 ### Updating dispositions
 
 The memory agent proposes updates after each round. Updates are not applied
-automatically — they are queued as proposals and applied only when the run
-completes and the user approves (or auto-approved if confidence delta is
-small: < 0.05).
+automatically — they are queued as proposals in the canonical backend and
+applied only when the run completes and the user approves (or auto-approved if
+confidence delta is small and policy allows it).
 
 **Update types:**
 
@@ -205,6 +223,20 @@ Default policy:
 - Artifact sharing to external services is disabled unless separately approved
 
 ---
+
+## Claude.ai access paths
+
+Claude.ai should never treat native Claude memory as the authoritative store for
+a* learning. Use one of these explicit paths instead:
+
+1. `connector_backed`
+   Preferred. A remote connector exposes narrow memory tools over a user-scoped,
+   auditable surface.
+2. `project_pack`
+   Fallback. Export a text-first project pack from the canonical backend, add it
+   to project knowledge, and manually sync updated pack files back after the run.
+3. `none`
+   Final fallback. Run with short-term memory only and say so plainly.
 
 ## Memory agent responsibilities
 

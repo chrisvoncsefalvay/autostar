@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "project_id": "project_demo",
+  "items": [
+    {
+      "schema_version": "1.0",
+      "disposition_id": "disp_demo_type",
+      "project_id": "project_demo",
+      "problem_class": "python_api_optimisation",
+      "action_intent": "improve_type_correctness",
+      "version": 2,
+      "status": "active",
+      "prior": "Prefer return type annotations before parameter annotations in FastAPI handlers.",
+      "confidence": 0.81,
+      "n_supporting": 14,
+      "n_refuting": 2,
+      "exemplars_supporting": ["run_20260310_r2_l1", "run_20260318_r1_l3"],
+      "exemplars_refuting": ["run_20260301_r3_l2"],
+      "provenance": "learned_from_run",
+      "source": null,
+      "override_conditions": "Suspend when the codebase still uses Pydantic v1.",
+      "created_at": "2026-03-10T10:00:00Z",
+      "last_updated": "2026-03-22T10:00:00Z",
+      "policy_version_at_creation": 2,
+      "evidence_summary": "Observed across multiple API typing cleanups."
+    }
+  ]
+}

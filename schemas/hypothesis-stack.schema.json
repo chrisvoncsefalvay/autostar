@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrisvoncsefalvay/autostar/schemas/hypothesis-stack.schema.json",
+  "title": "a* hypothesis stack",
+  "description": "Derived run-scoped snapshot of pending hypotheses with provenance.",
+  "type": "object",
+  "required": ["schema_version", "run_id", "updated_at", "items"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": ["string", "null"]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["hypothesis", "source", "confidence", "priority"],
+        "properties": {
+          "hypothesis": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "play": {
+            "type": ["string", "null"]
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "action_intent": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    }
+  }
+}
