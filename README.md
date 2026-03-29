@@ -310,7 +310,7 @@ Please open an issue before large changes.
 
 **[Chris von Csefalvay](https://chrisvoncsefalvay.com)** ([@epichrisis](https://x.com/epichrisis))
 
-Author of [*The Craft of Post-Training*](https://posttraining.guide) (No Starch Press).
+Author of [*Post-Training: A Guide for Developers and AI Engineers*](https://posttraining.guide) (No Starch Press). Building tools that make post-training techniques accessible to practitioners — because the gap between "this works in a paper" and "this works in my project" is where most of the value lives.
 
 ---
 
