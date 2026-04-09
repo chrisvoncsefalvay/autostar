@@ -10,7 +10,9 @@ description: >
   different approaches and pick the best", or any request implying repeated
   evaluate-and-improve cycles. Also use when the user wants to improve a system
   prompt, a data pipeline, a writing style, or any artifact where quality can be
-  decomposed into measurable tracks.
+  decomposed into measurable tracks. For inference optimisation tasks (model
+  latency, throughput, quantization, GPU deployment), a* delegates the
+  low-level tuning to AITune while maintaining quality tracking and learning.
 ---
 
 # a* (autostar)
@@ -247,6 +249,7 @@ Return code 0 = pass; non-zero = fail (unless score mode is configured).
 | Prose | `vale` | Style guide adherence |
 | Security | `bandit`, `semgrep` | Vulnerability patterns |
 | Build | `tsc`, `cargo check` | Compilation success |
+| Inference perf | `aitune` | Model latency, throughput, memory (see AITune delegation below) |
 
 ```
 verifier:
@@ -314,6 +317,44 @@ Hard constraints in `constraints.md` are checked **before** any verifier runs.
 A constraint violation immediately rejects the step with `outcome: rejected_constraint`
 and returns zero budget cost for the verifier calls. This is important: do not waste
 judge budget on an artifact that violates a hard constraint.
+
+---
+
+## Inference optimisation and AITune delegation
+
+When the artifact being optimised is a **model's inference performance** —
+latency, throughput, GPU memory during serving, or deployment configuration —
+the mutation step should delegate to [AITune](https://github.com/ai-dynamo/aitune)
+rather than blindly experimenting with inference configurations through the
+a\* loop alone.
+
+**Why this matters:** Inference optimisation has a structured search space
+(backends, precision levels, compilation strategies) that AITune already
+navigates well. a\*'s value here is in wrapping AITune with multi-dimensional
+quality constraints (accuracy preservation, latency targets, memory budgets)
+and the reflect-and-learn cycle — not in reinventing AITune's internal search.
+
+**Detection during onboarding:** If the user's goal involves model serving
+speed, inference latency, throughput, quantization for deployment, or
+GPU-accelerated inference, flag this as an inference optimisation mission
+during Phase 1 and suggest AITune delegation. Present it as an option:
+
+> "This looks like an inference optimisation problem. I can delegate the
+> low-level tuning (backend selection, quantization, graph optimisation) to
+> AITune while keeping a\*'s quality tracking and learning loop around it.
+> Would you like to use AITune for the inference tuning?"
+
+If the user agrees, read `references/aitune.md` for the full delegation
+protocol, including track templates, play design patterns, and correctness
+validation setup. The key architectural point: each a\* step invokes AITune
+with a parameter set; a\* evaluates the result against all tracks; the
+ratchet and reflection machinery works as normal.
+
+If AITune is not installed, offer the install command during Phase 2 tool
+checks:
+```bash
+pip install --extra-index-url https://pypi.nvidia.com aitune
+```
 
 ---
 
@@ -584,6 +625,7 @@ Read these when the relevant section is reached:
 | `references/adapter-pi.md` | When running a* in Pi full-support mode |
 | `references/adapter-chat-only.md` | To understand the unsupported chat-only boundary |
 | `references/adapter-template.md` | When creating a new runtime adapter |
+| `references/aitune.md` | When mission involves inference optimisation (latency, throughput, quantization, GPU deployment) |
 
 ## Assets
 
